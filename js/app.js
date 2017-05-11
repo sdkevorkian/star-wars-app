@@ -1,38 +1,33 @@
 /*global angular*/
-angular.module('StarWarsApp', ['ngResource'])
+// importing StarWars controller from separate file nto our app
+var app = angular.module('StarWarsApp', ['StarWarsCtrls', 'ui.router']);
 
-.factory('Films', ['$resource', function($resource) {
-    return $resource('http://swapi.co/api/films/:id', {}, {
-        query: { isArray: false }
-    });
-}])
+// stateProvider tracks our state change (routes)
+// urlRouterProvider (changes url without actually reloading pages)
+app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
 
-.controller('FilmsCtrl', ['$scope', 'Films', function($scope, Films) {
-    $scope.movieId = 1;
-    $scope.films = [];
-    $scope.loading = false;
+    // this statement handles what happens if there's not a page at that route, can direct to home or to 404 page
+    $urlRouterProvider.otherwise('/');
 
-    $scope.getAll = function() {
-        $scope.loading = true;
-        Films.query(function success(data) {
-            $scope.films = data.results;
-            $scope.loading = false;
-
-        }, function error(err) {
-            $scope.loading = false;
-            console.log(err);
+    //define routes
+    $stateProvider
+    // this will be route for display page of 1 movie
+        .state('films', {
+            // route itself
+            url: '/',
+            // html to render
+            templateUrl: 'views/films.html',
+            // what controller our logic for the page is in
+            controller: 'FilmsCtrl'
+        })
+        .state('about', {
+            url: '/about',
+            templateUrl: 'views/about.html'
+                // no controller because static route, nothing occuring on page, could add logic or function which would need a controller
+        })
+        .state('showFilm', {
+            url: '/films/:id',
+            templateUrl: 'views/filmShow.html',
+            controller: 'FilmShowCtrl'
         });
-    };
-
-    $scope.getMovie = function(id) {
-        $scope.loading = true;
-        Films.get({ id: id }, function success(data) {
-            $scope.films = [data];
-            $scope.loading = false;
-        }, function error(err) {
-            console.log(err);
-            $scope.loading = false;
-
-        });
-    };
 }]);
